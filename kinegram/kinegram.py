@@ -28,11 +28,13 @@ class Kinegram(object):
 
         self.bg_im = []
 
-        cropHeight = np.nan # guaranteed not minimum
         self.interWidth = np.nan
         self.interHeight = np.nan
         self.interDepth = np.nan
         self.dtype = 'uint8'
+
+        self.interlaceWidth = None
+        self.overlay = None
 
     def loadImage(self, filename):
         """ Loads image as PIL.Image type
@@ -58,8 +60,8 @@ class Kinegram(object):
             Note: crops input images to be even multiple of width
             Note orientation currently does nothing
         """
-
         num_imgs = len(self.bg_im)
+        self.interlaceWidth = width * num_imgs
         cropWidth = int(np.floor(self.interWidth / width) * width)
         cropHeight = int(np.floor(self.interHeight / width) * width)
 
@@ -73,21 +75,33 @@ class Kinegram(object):
             for j in np.arange(width):
                 self.interlaced[:, ((i * width)+j)::num_imgs*width, :] = img_crop[:, j::width, :]
 
+    def generateOverlay(self, overlap):
+        """ Generates foreground image (interference image)
+            overlap = [0, 1] width of opaque vs transpartent section
+        """
+        if self.interlaceWidth is None:
+            raise Exception('you must generateInterlace before you can generate the Front')
+
+        overlap_actual = int(self.interlaceWidth * overlap) # no of pixels
+        overlay_modual = np.zeros((self.interHeight, self.interlaceWidth, 4), dtype=self.dtype)
+        overlay_modual[:, 0:overlap_actual, 3] = 255 # opacity up
+
+        # stack overlaps
+        stack_amount = int(self.interlaced.shape[1] / self.interlaceWidth) - 1
+        self.overlay = np.copy(overlay_modual)
+        for i in np.arange(stack_amount):
+            self.overlay = np.hstack((self.overlay, overlay_modual))
+
+    def save(self, filename, directory="./"):
+        """ exports interlaced and overlay as png images
+        """
+        Image.fromarray(self.interlaced).save("{0}{1}_interlaced.png".format(directory, filename))
+        Image.fromarray(self.overlay).save("{0}{1}_overlayed.png".format(directory, filename))
+
 if __name__ == '__main__':
     kine = Kinegram()
-    # for i in np.arange(3):
-    #     kine.loadImage("./examples/dance/dance00{0}.png".format(i+1))
+    for i in np.arange(0, 9, 3):
+        kine.loadImage("./examples/dance/dance00{0}.png".format(i+1))
 
-    red = np.zeros((100, 100, 3), dtype='uint8')
-    green = np.copy(red)
-    blue = np.copy(red)
-
-    red[:,:, 0] = 255
-    green[:,:, 1] = 255
-    blue[:,:, 2] = 255
-
-    kine.appendImage(red)
-    kine.appendImage(green)
-    kine.appendImage(blue)
-
-    kine.generateInterlace(width = 2)
+    kine.generateInterlace(width=2)
+    kine.generateOverlay(.5)
