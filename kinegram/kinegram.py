@@ -52,32 +52,32 @@ class Kinegram(object):
         self.dtype = img.dtype
         self.bg_im.append(img)
 
-    def generateInterlace(self, width=1, orientation=0):
+    def generateInterlace(self, pxl_width=1, orientation=0):
         """ Generates interlaced background image
-            width = width of each interlace "frame" in pixels
+            pxl_width = width of each interlace "frame" in pixels
             orientation = direction of interlace
 
-            Note: crops input images to be even multiple of width
+            Note: crops input images to be even multiple of pxl_width
             Note orientation currently does nothing
         """
         num_imgs = len(self.bg_im)
-        self.interlaceWidth = width * num_imgs
-        cropWidth = int(np.floor(self.interWidth / width) * width)
-        cropHeight = int(np.floor(self.interHeight / width) * width)
+        stepsize = pxl_width * num_imgs
+        cropWidth = int(np.floor(self.interWidth / stepsize) * stepsize)
+        self.interlaceWidth = pxl_width * num_imgs
 
         self.interlaced = np.zeros(
-            (self.interHeight, cropWidth * num_imgs, self.interDepth),
+            (self.interHeight, cropWidth, self.interDepth),
             dtype=self.bg_im[0].dtype
         )
         
         for i, img in enumerate(self.bg_im):
             img_crop = img[:,:cropWidth, :]
-            for j in np.arange(width):
-                self.interlaced[:, ((i * width)+j)::num_imgs*width, :] = img_crop[:, j::width, :]
+            for j in np.arange(pxl_width):
+                self.interlaced[:, ((i * pxl_width)+j)::num_imgs*pxl_width, :] = img_crop[:, j::stepsize, :]
 
     def generateOverlay(self, overlap):
         """ Generates foreground image (interference image)
-            overlap = [0, 1] width of opaque vs transpartent section
+            overlap = [0, 1] pxl_width of opaque vs transpartent section
         """
         if self.interlaceWidth is None:
             raise Exception('you must generateInterlace before you can generate the Front')
@@ -100,8 +100,8 @@ class Kinegram(object):
 
 if __name__ == '__main__':
     kine = Kinegram()
-    for i in np.arange(0, 9, 3):
+    for i in np.arange(0, 9, 4):
         kine.loadImage("./examples/dance/dance00{0}.png".format(i+1))
 
-    kine.generateInterlace(width=2)
-    kine.generateOverlay(.5)
+    kine.generateInterlace(pxl_width=3)
+    kine.generateOverlay(.75)
