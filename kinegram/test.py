@@ -74,7 +74,8 @@ class TestKinegramMethods(SimpleKinegramTestCase):
         self.kine.appendImage(rgb)
         self.kine.appendImage(rgb)
         
-        self.kine.generateInterlace(pxl_width=pxl_width)
+        self.kine.setPixelWidth(pxl_width)
+        self.kine.generateInterlace()
         np.testing.assert_array_equal(self.kine.interlaced, np.hstack((r,r,r)))
 
     def test_generateOverlay_shape(self):
@@ -104,7 +105,8 @@ class TestKinegramMethods(SimpleKinegramTestCase):
             for i in np.arange(num_img):
                 self.kine.appendImage(base)
 
-            self.kine.generateInterlace(pxl_width=pxl_width)
+            self.kine.setPixelWidth(pxl_width)
+            self.kine.generateInterlace()
             self.kine.generateOverlay(overlap)
             
             interlace_width = pxl_width * num_img
