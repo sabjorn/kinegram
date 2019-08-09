@@ -112,3 +112,19 @@ D2 = (p * D1)/x
 D2 = (.5 * 10)/3
 D1 = 1.67m
 ```
+
+## Notes
+### 8.5x11 Image
+An 8.5x11 inch colour image print has been tested with the following parameters:
+
+* pixel width: 5px
+* background distance: 1m
+* foreground distance: 0m, .1m, .25m, .5m
+
+The `0m` foreground distance provided a sanity check
+The `.1m` and `.25m` foreground distances worked effectively.
+The `.5m` distance did not work at all. It is hard to 
+
+Additionally, the use of colour was perhaps not successful. A high contrast black/white image would likely work better.
+
+The image tended to be very dark behind the screen. A larger `pixel width` should help increase the brightness of the image (and the animation distance for viewers).
