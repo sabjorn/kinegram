@@ -139,28 +139,39 @@ class Kinegram(object):
         Image.fromarray(self.overlay).save("{0}{1}_overlayed.png".format(directory, filename))
 
 if __name__ == '__main__':
-    kine = Kinegram(pxlWidth=3)
-    for i in np.arange(0, 9, 4):
-        kine.loadImage("./examples/dance/dance00{0}.png".format(i+1))
+    pxlWidth = 20
+    imageNumbers = np.array((10,  3,  2, 25, 23, 22, 15))
+    overlapWidth = (len(imageNumbers) - 1)/len(imageNumbers)
+
+    kine = Kinegram(pxlWidth=pxlWidth)
+    for i in imageNumbers:
+        kine.loadImage("./examples/heads/head3/8x11/head3_8x11_{0}.png".format(i))
 
     kine.generateInterlace()
-    kine.generateOverlay(.5)
+    # kine.generateOverlay(overlapWidth)
 
     ## calculate the viewer movement necessary for 1 animation cycle
     """
-        X/D1 = P/D2
+        P/D1 = X/D2
         X = viewer movement distance (m), i.e. how far viewer has to move to see animation
         P = Animation period (m)
         D1 = Distance from foreground to background
         D2 = Distance from viewer to foreground
     """
-    backgroundDistance = 1
-    overlayDistance = D1 = .9
+    backgroundDistance = 1.0
+    overlayDistance = D1 = .1
     D2 = backgroundDistance - D1 
     """
         X = P * D1 / D2
     """
-    viewerMovementDistance = kine.getAnimationPeriod() * D1 / D2
+    viewerMovementDistance = kine.getAnimationPeriod() * D2 / D1
+    print("animation period:", kine.getAnimationPeriod())
+    print("viewer animation period:",viewerMovementDistance)
+
+    kine.setParallaxRatio(overlayDistance, backgroundDistance)
+    kine.generateOverlay(overlapWidth)
+
+    kine.save("head3_8x11_{0}_{1}_{2}_{3}".format(pxlWidth, len(kine.bg_im), overlapWidth, D2), directory="./examples/heads/head3/8x11/")
     
     ## NOTE generateOverlay needs a scaling parameter for generating the offsets for distance from background. Should be possible to do after as well
 
