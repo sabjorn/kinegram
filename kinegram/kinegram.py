@@ -18,6 +18,11 @@ def autolog(logger, message):
         func.co_firstlineno
     ))
 
+def round(val):
+    rem = val - int(val)
+    if(rem >= .5): val = int(val) + 1
+    return int(val)
+
 class Kinegram(object):
     """ A class for generating Kinegrams
             pxlWidth = width of each interlace "frame" in pixels
@@ -92,15 +97,17 @@ class Kinegram(object):
         if self.interlaceWidth is None:
             raise Exception('you must generateInterlace before you can generate the Front')
 
-        interlaceWidthAdjusted = int(self.interlaceWidth * self.parallaxRatio)
-        if(interlaceWidthAdjusted < 1):
+        interlaceWidthScaled = round(self.interlaceWidth * self.parallaxRatio)
+        self.logger.debug("Interlace Width (scaled): {0}".format(interlaceWidthScaled))
+        if(interlaceWidthScaled < 1):
             raise Exception('interlace width is sub 1px. Either increase pxlWidth or change parallax ratio')
-        overlap_actual = int(interlaceWidthAdjusted * overlap) # no of pixels
-        overlay_modual = np.zeros((self.interHeight, interlaceWidthAdjusted, 4), dtype=self.dtype)
+        overlap_actual = round(interlaceWidthScaled * overlap) # no of pixels
+        self.logger.debug("Overlap Widths (adjusted): {0} | {1}".format(overlap_actual, interlaceWidthScaled - overlap_actual))
+        overlay_modual = np.zeros((self.interHeight, interlaceWidthScaled, 4), dtype=self.dtype)
         overlay_modual[:, 0:overlap_actual, 3] = 255 # opacity up
 
         # stack overlaps
-        stack_amount = int(self.interlaced.shape[1] / interlaceWidthAdjusted) - 1
+        stack_amount = int(self.interlaced.shape[1] / interlaceWidthScaled) - 1
         self.overlay = np.copy(overlay_modual)
         for i in np.arange(stack_amount):
             self.overlay = np.hstack((self.overlay, overlay_modual))
@@ -165,12 +172,12 @@ if __name__ == '__main__':
         D2 = Distance from viewer to foreground
     """
     backgroundDistance = 1.0
-    overlayDistance = D2 = .75 # .75 and .9 work well. >.5 seems to not work at all
+    overlayDistance = D2 = .9 # .75 and .9 work well. >.5 seems to not work at all
     D1 = backgroundDistance - D2
     """
         X = P * D1 / D2
     """
-    if(D2 > 0):
+    if(D1 > 0):
         viewerMovementDistance = kine.getAnimationPeriod() * D2 / D1
     else:
         viewerMovementDistance = kine.getAnimationPeriod()
@@ -181,7 +188,7 @@ if __name__ == '__main__':
     kine.setParallaxRatio(overlayDistance, backgroundDistance)
     kine.generateOverlay(overlapWidth)
 
-    kine.save("{0}_8x11_{1}_{2}_{3}_{4}".format(headname, pxlWidth, len(kine.bg_im), overlapWidth, D2), directory=imgdir)
+    kine.save("{0}_8x11_{1}_{2}_{3}_{4}".format(headname, pxlWidth, len(kine.bg_im), overlapWidth, D1), directory=imgdir)
     
     ## NOTE generateOverlay needs a scaling parameter for generating the offsets for distance from background. Should be possible to do after as well
 
