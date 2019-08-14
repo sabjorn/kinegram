@@ -18,6 +18,11 @@ def autolog(logger, message):
         func.co_firstlineno
     ))
 
+def round(val):
+    rem = val - int(val)
+    if(rem >= .5): val = int(val) + 1
+    return int(val)
+
 class Kinegram(object):
     """ A class for generating Kinegrams
             pxlWidth = width of each interlace "frame" in pixels
@@ -92,10 +97,10 @@ class Kinegram(object):
         if self.interlaceWidth is None:
             raise Exception('you must generateInterlace before you can generate the Front')
 
-        interlaceWidthAdjusted = int(self.interlaceWidth * self.parallaxRatio)
+        interlaceWidthAdjusted = round(self.interlaceWidth * self.parallaxRatio)
         if(interlaceWidthAdjusted < 1):
             raise Exception('interlace width is sub 1px. Either increase pxlWidth or change parallax ratio')
-        overlap_actual = int(interlaceWidthAdjusted * overlap) # no of pixels
+        overlap_actual = round(interlaceWidthAdjusted * overlap) # no of pixels
         overlay_modual = np.zeros((self.interHeight, interlaceWidthAdjusted, 4), dtype=self.dtype)
         overlay_modual[:, 0:overlap_actual, 3] = 255 # opacity up
 
@@ -139,13 +144,19 @@ class Kinegram(object):
         Image.fromarray(self.overlay).save("{0}{1}_overlayed.png".format(directory, filename))
 
 if __name__ == '__main__':
-    pxlWidth = 20
-    imageNumbers = np.array((10,  3,  2, 25, 23, 22, 15))
-    overlapWidth = (len(imageNumbers) - 1)/len(imageNumbers)
+    pxlWidth = 3
+    # imageNumbers = np.array((10,  3,  2, 25, 23, 22, 15)) # head3
+    # imageNumbers = np.array((21, 25, 29, 1, 5, 9, 13, 17)) # head4
+    # imageNumbers = np.arange(1, 13) # head8
+    # imageNumbers = np.arange(1, 32) # head4
+    imageNumbers = np.array((1, 4, 7, 10, 14, 21, 25)) # head9
 
+    overlapWidth = (len(imageNumbers) - 1)/len(imageNumbers)
+    headname = "head9"
+    imgdir = "./examples/heads/{0}/8.5x11/".format(headname)
     kine = Kinegram(pxlWidth=pxlWidth)
     for i in imageNumbers:
-        kine.loadImage("./examples/heads/head3/8x11/head3_8x11_{0}.png".format(i))
+        kine.loadImage("./{0}/{1}_{2}.png".format(imgdir, headname, i))
 
     kine.generateInterlace()
     # kine.generateOverlay(overlapWidth)
@@ -159,19 +170,23 @@ if __name__ == '__main__':
         D2 = Distance from viewer to foreground
     """
     backgroundDistance = 1.0
-    overlayDistance = D1 = .1
-    D2 = backgroundDistance - D1 
+    overlayDistance = D2 = .9 # .75 and .9 work well. >.5 seems to not work at all
+    D1 = backgroundDistance - D2
     """
         X = P * D1 / D2
     """
-    viewerMovementDistance = kine.getAnimationPeriod() * D2 / D1
+    if(D1 > 0):
+        viewerMovementDistance = kine.getAnimationPeriod() * D2 / D1
+    else:
+        viewerMovementDistance = kine.getAnimationPeriod()
+
     print("animation period:", kine.getAnimationPeriod())
     print("viewer animation period:",viewerMovementDistance)
 
     kine.setParallaxRatio(overlayDistance, backgroundDistance)
     kine.generateOverlay(overlapWidth)
 
-    kine.save("head3_8x11_{0}_{1}_{2}_{3}".format(pxlWidth, len(kine.bg_im), overlapWidth, D2), directory="./examples/heads/head3/8x11/")
+    kine.save("{0}_8x11_{1}_{2}_{3}_{4}".format(headname, pxlWidth, len(kine.bg_im), overlapWidth, D1), directory=imgdir)
     
     ## NOTE generateOverlay needs a scaling parameter for generating the offsets for distance from background. Should be possible to do after as well
 
