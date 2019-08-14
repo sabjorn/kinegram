@@ -146,6 +146,10 @@ class Kinegram(object):
         Image.fromarray(self.overlay).save("{0}{1}_overlayed.png".format(directory, filename))
 
 if __name__ == '__main__':
+    logger = logging.getLogger()
+    logging.basicConfig(format='%(message)s')
+    logger.setLevel(logging.DEBUG)
+
     pxlWidth = 3
     # imageNumbers = np.array((10,  3,  2, 25, 23, 22, 15)) # head3
     # imageNumbers = np.array((21, 25, 29, 1, 5, 9, 13, 17)) # head4
