@@ -102,7 +102,7 @@ class Kinegram(object):
         if(interlaceWidthScaled < 1):
             raise Exception('interlace width is sub 1px. Either increase pxlWidth or change parallax ratio')
         overlap_actual = round(interlaceWidthScaled * overlap) # no of pixels
-        self.logger.debug("Overlap Widths (adjusted): {0} | {1}".format(overlap_actual, interlaceWidthScaled - overlap_actual))
+        self.logger.debug("Overlap Widths (scaled): {0} | {1}".format(overlap_actual, interlaceWidthScaled - overlap_actual))
         overlay_modual = np.zeros((self.interHeight, interlaceWidthScaled, 4), dtype=self.dtype)
         overlay_modual[:, 0:overlap_actual, 3] = 255 # opacity up
 
@@ -179,7 +179,7 @@ if __name__ == '__main__':
     overlayDistance = D2 = .9 # .75 and .9 work well. >.5 seems to not work at all
     D1 = backgroundDistance - D2
     """
-        X = P * D1 / D2
+        X = P * D2 / D1
     """
     if(D1 > 0):
         viewerMovementDistance = kine.getAnimationPeriod() * D2 / D1
