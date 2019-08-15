@@ -118,6 +118,7 @@ D1 = 1.67m
 An 8.5x11 inch colour image print has been tested with the following parameters:
 
 * pixel width: 5px
+* # frames: 7
 * background distance: 1m
 * foreground distance: 0m, .1m, .25m, .5m
 
@@ -128,3 +129,6 @@ The `.5m` distance did not work at all. It is hard to
 Additionally, the use of colour was perhaps not successful. A high contrast black/white image would likely work better.
 
 The image tended to be very dark behind the screen. A larger `pixel width` should help increase the brightness of the image (and the animation distance for viewers).
+
+#### Hypothesis
+The is likely a relationship between `pixel width` and `# of frames` such that their ratio can be optimized.
